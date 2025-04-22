@@ -21,7 +21,7 @@ jobs:
         uses: Azure/cli@v2.1.0
         with:
           # Specify the script here
-          inlineScript: az acr build -t ${{secrets.repository}}/azure-vote-front:${{github.sha}} -r ${{secrets.registry}} .
+          inlineScript: az acr build -t ${{secrets.repository}}/azure-vote-front:${{github.sha}} -r ${{secrets.registry}} ./azure-vote
           
       - name: Set AKS context
         id: set-context
