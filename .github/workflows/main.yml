@@ -11,24 +11,18 @@ jobs:
     steps:
       - name: Checkout source code 
         uses: actions/checkout@v3
-      - name: ACR build
-        id: build-push-acr
-        uses: azure/acr-build@v1
-        with:
-          service_principal: ${{ secrets.service_principal }}
-          service_principal_password: ${{ secrets.service_principal_password }}
-          tenant: ${{ secrets.tenant }}
-          registry: ${{ secrets.registry }}
-          repository: ${{ secrets.repository }}
-          image:  azure-vote-front
-          folder: azure-vote
-          branch: master
-          tag: ${{ github.sha }}
       - uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
           environment: 'AzureUSGovernment'
           enable-AzPSSession: true
+          
+      - name: Azure CLI Action
+        uses: Azure/cli@v2.1.0
+        with:
+          # Specify the script here
+          inlineScript: az acr build -t ${{secrets.repository}}/azure-vote-front:${{github.sha}} -r ${{secrets.registry}} .
+          
       - name: Set AKS context
         id: set-context
         uses: azure/aks-set-context@v3
