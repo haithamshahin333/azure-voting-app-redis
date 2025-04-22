@@ -22,6 +22,12 @@ jobs:
         with:
           # Specify the script here
           inlineScript: az acr build -t ${{secrets.repository}}/azure-vote-front:${{github.sha}} -r ${{secrets.registry}} ./azure-vote
+
+      - name: Run Azure PowerShell Script File
+        uses: azure/powershell@v2
+        with:
+          inlineScript: ./scripts/ImageScanSummaryAssessmentGate.ps1 -registryName ${{secrets.registry}} -repository ${{secrets.repository}}/azure-vote-front -tag ${{github.sha}}
+          azPSVersion: "latest"
           
       - name: Set AKS context
         id: set-context
