@@ -8,6 +8,11 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      REGISTRY: ${{ secrets.registry }}
+      REPO_NAME: ${{ secrets.repository }}
+      IMAGE_NAME: azure-vote-front
+      IMAGE_TAG: ${{ github.sha }}
     steps:
       - name: Checkout source code 
         uses: actions/checkout@v3
@@ -20,30 +25,4 @@ jobs:
       - name: Azure CLI Action
         uses: Azure/cli@v2.1.0
         with:
-          # Specify the script here
-          inlineScript: az acr build -t ${{secrets.repository}}/azure-vote-front:${{github.sha}} -r ${{secrets.registry}} ./azure-vote
-
-      - name: Run Azure PowerShell Script File
-        uses: azure/powershell@v2
-        with:
-          inlineScript: ./scripts/ImageScanSummaryAssessmentGate.ps1 -registryName ${{secrets.registry}} -repository ${{secrets.repository}}/azure-vote-front -tag ${{github.sha}}
-          azPSVersion: "latest"
-          
-      - name: Set AKS context
-        id: set-context
-        uses: azure/aks-set-context@v3
-        with:
-          resource-group: '${{ secrets.resource_group }}' 
-          cluster-name: '${{ secrets.cluster_name }}'
-      - name: Setup kubectl
-        id: install-kubectl
-        uses: azure/setup-kubectl@v3
-      - name: Deploy to AKS
-        id: deploy-aks
-        uses: Azure/k8s-deploy@v4
-        with:
-          namespace: 'default'
-          manifests: |
-             azure-vote-all-in-one-redis.yaml
-          images: '${{ secrets.registry }}.azurecr.io/${{ secrets.repository }}/azure-vote-front:${{ github.sha }}'
-          pull-images: false
+          inlineScript: az acr import --name ${{ secrets.registry }} --source docker.io/library/hello-world:latest --tag ${{REPO_NAME}}/${{IMAGE_NAME}}:${{IMAGE_TAG}} --force
