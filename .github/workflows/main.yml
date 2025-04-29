@@ -8,11 +8,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      REGISTRY: ${{ secrets.registry }}
-      REPO_NAME: ${{ secrets.repository }}
-      IMAGE_NAME: azure-vote-front
-      IMAGE_TAG: ${{ github.sha }}
     steps:
       - name: Checkout source code 
         uses: actions/checkout@v3
@@ -21,8 +16,13 @@ jobs:
           creds: ${{ secrets.AZURE_SECRET }}
           environment: 'AzureUSGovernment'
           enable-AzPSSession: true
-          
+
       - name: Azure CLI Action
         uses: Azure/cli@v2.1.0
+        env:
+          REGISTRY: ${{ secrets.registry }}
+          REPO_NAME: ${{ secrets.repository }}
+          IMAGE_NAME: azure-vote-front
+          IMAGE_TAG: ${{ github.sha }}
         with:
-          inlineScript: az acr import --name ${{ secrets.registry }} --source docker.io/library/hello-world:latest --tag ${{REPO_NAME}}/${{IMAGE_NAME}}:${{IMAGE_TAG}} --force
+          inlineScript: az acr import --name $REGISTRY --source docker.io/library/hello-world:latest --tag $REPO_NAME/$IMAGE_NAME:$IMAGE_TAG --force
