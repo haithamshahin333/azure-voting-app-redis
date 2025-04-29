@@ -3,8 +3,6 @@ on:
   workflow_dispatch:
 
   push:
-    paths:
-      - "azure-vote/**"
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -21,7 +19,7 @@ jobs:
         uses: Azure/cli@v2.1.0
         env:
           REGISTRY: ${{ secrets.registry }}
-          REPO_NAME: ${{ secrets.repository }}
+          REPO_NAME: workflow
           IMAGE_NAME: azure-vote-front
           IMAGE_TAG: ${{ github.sha }}
         with:
