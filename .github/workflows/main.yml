@@ -23,4 +23,4 @@ jobs:
           IMAGE_NAME: azure-vote-front
           IMAGE_TAG: ${{ github.sha }}
         with:
-          inlineScript: az acr import --name $REGISTRY --source docker.io/library/hello-world:latest --tag $REPO_NAME/$IMAGE_NAME:$IMAGE_TAG --force
+          inlineScript: az acr import --name $REGISTRY --source docker.io/library/hello-world:latest --image $REPO_NAME/$IMAGE_NAME:$IMAGE_TAG --force
