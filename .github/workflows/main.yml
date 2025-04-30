@@ -3,8 +3,7 @@ on:
   workflow_dispatch:
 
   push:
-    paths:
-      - "azure-vote/**"
+
 jobs:
   build:
     runs-on: ubuntu-latest
