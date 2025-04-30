@@ -3,6 +3,8 @@ on:
   workflow_dispatch:
 
   push:
+    paths:
+      - "azure-vote/**"
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -20,7 +22,63 @@ jobs:
         env:
           REGISTRY: ${{ secrets.registry }}
           REPO_NAME: workflow
+          IMAGE_NAME: customimagename
+          IMAGE_TAG: ${{ github.sha }}
+        with:
+          inlineScript: az acr import --name $REGISTRY --source docker.io/library/hello-world:latest --tag $REPO_NAME/$IMAGE_NAME:$IMAGE_TAG --force
+
+      - name: Get image digest
+        id: get_digest
+        uses: azure/cli@v2.1.0
+        env:
+          REGISTRY: ${{ secrets.registry }}
+          REPO_NAME: ${{ secrets.repository }}
           IMAGE_NAME: azure-vote-front
           IMAGE_TAG: ${{ github.sha }}
         with:
-          inlineScript: az acr import --name $REGISTRY --source docker.io/library/hello-world:latest --image $REPO_NAME/$IMAGE_NAME:$IMAGE_TAG --force
+          inlineScript: |
+            DIGEST=$(az acr manifest list-metadata \
+              --registry "$REGISTRY" \
+              --name "$REPO_NAME/$IMAGE_NAME" \
+              --query "[?tags[?@=='$IMAGE_TAG']].digest" \
+              --output tsv)
+            echo "digest=$DIGEST" >> "$GITHUB_OUTPUT"
+
+      - name: Install Resource Graph extension
+        uses: azure/cli@v2.1.0
+        with:
+          inlineScript: az extension add --name resource-graph
+
+      - name: Query ACR image vulnerability assessment
+        id: acr_vuln_query
+        uses: azure/cli@v2.1.0
+        env:
+          REGISTRY: ${{ secrets.registry }}
+          REPO_NAME: ${{ secrets.repository }}
+          IMAGE_NAME: azure-vote-front
+          IMAGE_TAG: ${{ github.sha }}
+        with:
+          inlineScript: |
+            DIGEST="${{ steps.get_digest.outputs.digest }}"
+            IMAGE_ID="/repositories/$REPO_NAME/$IMAGE_NAME/images/$DIGEST"
+            for i in {1..15}; do
+              QUERY="SecurityResources
+                    | where type == 'microsoft.security/assessments/subassessments'
+                    | where properties.additionalData.assessedResourceType == 'AzureContainerRegistryVulnerability'
+                    | extend assessmentKey = extract(@'(?i)providers/Microsoft.Security/assessments/([^/]*)', 1, id)
+                    | where assessmentKey == 'c0b7cfc6-3172-465a-b378-53c7ff2cc0d5'
+                    | project imageName = tostring(properties.resourceDetails.id), status = properties.status.code
+                    | where imageName == '$IMAGE_ID'
+                    | summarize healthyCount = countif(status == 'Healthy'), unhealthyCount = countif(status == 'Unhealthy') by imageName"
+              RESULT=$(az graph query -q "$QUERY" --first 1 --output json)
+              HEALTHY=$(echo "$RESULT" | jq -r '.data[0].healthyCount // 0')
+              UNHEALTHY=$(echo "$RESULT" | jq -r '.data[0].unhealthyCount // 0')
+              echo "Query result: $RESULT"
+              if [ "$HEALTHY" -gt 0 ] || [ "$UNHEALTHY" -gt 0 ]; then
+                break
+              fi
+              sleep 60
+            done
+            echo "vuln_query_result=$RESULT" >> "$GITHUB_OUTPUT"
+
+
