@@ -8,8 +8,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       REGISTRY: ${{ secrets.registry }}
-      REPO_NAME: ${{ secrets.repository }}
-      IMAGE_NAME: azure-vote-front
+      REPO_NAME: test-scans
+      IMAGE_NAME: imagename
       IMAGE_TAG: ${{ github.sha }}
     steps:
       - name: Checkout source code 
