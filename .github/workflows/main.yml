@@ -43,11 +43,6 @@ jobs:
               --output tsv)
             echo "digest=$DIGEST" >> "$GITHUB_OUTPUT"
 
-      - name: Install Resource Graph extension
-        uses: azure/cli@v2.1.0
-        with:
-          inlineScript: az extension add --name resource-graph
-
       - name: Query ACR image vulnerability assessment
         id: acr_vuln_query
         uses: azure/cli@v2.1.0
@@ -69,6 +64,7 @@ jobs:
                     | project imageName = tostring(properties.resourceDetails.id), status = properties.status.code
                     | where imageName == '$IMAGE_ID'
                     | summarize healthyCount = countif(status == 'Healthy'), unhealthyCount = countif(status == 'Unhealthy') by imageName"
+              echo "Running Resource Graph query:\n$QUERY"
               RESULT=$(az graph query -q "$QUERY" --first 1 --output json)
               HEALTHY=$(echo "$RESULT" | jq -r '.data[0].healthyCount // 0')
               UNHEALTHY=$(echo "$RESULT" | jq -r '.data[0].unhealthyCount // 0')
