@@ -41,6 +41,7 @@ jobs:
               --name "$REPO_NAME/$IMAGE_NAME" \
               --query "[?tags[?@=='$IMAGE_TAG']].digest" \
               --output tsv)
+            echo "digest: $DIGEST"
             echo "digest=$DIGEST" >> "$GITHUB_OUTPUT"
 
       - name: Query ACR image vulnerability assessment
