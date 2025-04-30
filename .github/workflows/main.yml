@@ -48,7 +48,7 @@ jobs:
               | where assessmentKey == 'c0b7cfc6-3172-465a-b378-53c7ff2cc0d5'
               | where properties.resourceDetails.id startswith '/repositories/$REPO_NAME/$IMAGE_NAME/images'
               | extend TimeGenerated = properties.timeGenerated
-              | where TimeGenerated >= '$PUSH_TIME'
+              | where TimeGenerated >= todatetime('$PUSH_TIME')
               | extend status = properties.status.code
               | extend severity = properties.status.severity
               | where status != 'Healthy'"
