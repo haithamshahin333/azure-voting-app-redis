@@ -23,7 +23,7 @@ jobs:
       - name: Azure CLI Action
         uses: Azure/cli@v2.1.0
         with:
-          inlineScript: az acr import --name $REGISTRY --source docker.io/library/hello-world:latest --image $REPO_NAME/$IMAGE_NAME:$IMAGE_TAG --force
+          inlineScript: az acr import --name $REGISTRY --source mcr.microsoft.com/dotnet/aspire-dashboard --image $REPO_NAME/$IMAGE_NAME:$IMAGE_TAG --force
 
       - name: Get image digest
         id: get_digest
