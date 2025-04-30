@@ -25,7 +25,7 @@ jobs:
         uses: azure/cli@v2.1.0
         with:
           inlineScript: |
-            az acr import --name $REGISTRY --source docker.io/library/hello-world:latest --image $REPO_NAME/$IMAGE_NAME:$IMAGE_TAG --force
+            az acr import --name $REGISTRY --source mcr.microsoft.com/dotnet/monitor --image $REPO_NAME/$IMAGE_NAME:$IMAGE_TAG --force
             PUSH_TIME=$(date -u +"%Y-%m-%dT%H:%M:%S.%NZ")
             echo "push_time=$PUSH_TIME" >> "$GITHUB_OUTPUT"
 
